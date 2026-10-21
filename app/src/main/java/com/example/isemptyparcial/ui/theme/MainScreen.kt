@@ -4,12 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -42,7 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.isemptyparcial.MainViewModel
-import com.example.isemptyparcial.models.KanyeQuoteResumen
+import com.example.isemptyparcial.data.exchange.ExchangeRateDto
+import com.example.isemptyparcial.models.ExchangeRateResumen
 
 val backgroundColor = Color(0xFF121212)
 val surfaceColor = Color(0xFF1E1E1E)
@@ -58,7 +61,7 @@ fun MainScreen(
 
     val favoritosIds by viewModel.favoritosIds.collectAsState()
     val favoritosList by viewModel.favoritosList.collectAsState()
-    val kanyeQuote by viewModel.kanyeState.collectAsState()
+    val ratesList by viewModel.ratesState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.errorState.collectAsState()
 
@@ -69,7 +72,7 @@ fun MainScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (showingFavorites) "Favoritos" else "Citas",
+                        text = if (showingFavorites) "Favoritos" else "Tipo de Cambio",
                         fontWeight = FontWeight.Black,
                         fontSize = 24.sp,
                         color = primaryColor,
@@ -81,7 +84,7 @@ fun MainScreen(
                     IconButton(onClick = { showingFavorites = !showingFavorites }) {
                         Icon(
                             imageVector = if (showingFavorites) Icons.Default.Info else Icons.Default.Favorite,
-                            contentDescription = if (showingFavorites) "Ver citas" else "Ver favoritos",
+                            contentDescription = if (showingFavorites) "Ver tipos de cambio" else "Ver favoritos",
                             tint = primaryColor
                         )
                     }
@@ -94,19 +97,19 @@ fun MainScreen(
         }
     ) { innerPadding ->
         if (showingFavorites) {
-            FavoritesContent(
+            ExchangeFavoritesContent(
                 favoritosList = favoritosList,
-                onQuitar = { quoteText -> viewModel.alternarFavoritoKanye(quoteText) },
+                onQuitar = { resumen -> viewModel.quitarFavorito(resumen) },
                 modifier = Modifier.padding(innerPadding)
             )
         } else {
-            QuoteScreenContent(
-                quoteText = kanyeQuote?.quote,
+            ExchangeScreenContent(
+                ratesList = ratesList,
                 isLoading = isLoading,
                 error = error,
                 favoritosIds = favoritosIds,
-                onFetchQuote = { viewModel.fetchKanyeQuote() },
-                onToggleFavorite = { quote -> viewModel.alternarFavoritoKanye(quote) },
+                onFetchRates = { viewModel.fetchExchangeRates() },
+                onToggleFavorite = { rateDto -> viewModel.alternarFavorito(rateDto) },
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -114,73 +117,141 @@ fun MainScreen(
 }
 
 @Composable
-fun QuoteScreenContent(
-    quoteText: String?,
+fun ExchangeScreenContent(
+    ratesList: List<ExchangeRateDto>,
     isLoading: Boolean,
     error: String?,
     favoritosIds: Set<Int>,
-    onFetchQuote: () -> Unit,
-    onToggleFavorite: (String) -> Unit,
+    onFetchRates: () -> Unit,
+    onToggleFavorite: (ExchangeRateDto) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 24.dp),
+            .padding(horizontal = 20.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Icono de corazón para guardar/quitar de favoritos si hay cita generada
-        if (quoteText != null) {
-            val esFavorito = quoteText.hashCode() in favoritosIds
-            IconButton(
-                onClick = { onToggleFavorite(quoteText) },
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
-                Icon(
-                    imageVector = if (esFavorito) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = if (esFavorito) "Quitar de favoritos" else "Agregar a favoritos",
-                    tint = if (esFavorito) Color(0xFFE91E63) else Color.Gray,
-                    modifier = Modifier.size(40.dp)
-                )
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Obteniendo tipos de cambio...",
+                        color = textColor,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
-        } else {
-            Box(modifier = Modifier.height(40.dp))
-        }
 
-        // Caja de texto para mostrar la cita
-        val textToShow = when {
-            isLoading -> "Buscando información..."
-            error != null -> error
-            quoteText != null -> "\"$quoteText\""
-            else -> "Presiona RANDOM"
-        }
+            error != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = error,
+                        color = Color.Red,
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(vertical = 16.dp)
-                .background(surfaceColor, RoundedCornerShape(16.dp))
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            item {
-                Text(
-                    text = textToShow,
-                    color = textColor,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            ratesList.isEmpty() -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Presiona ACTUALIZAR para obtener los tipos de cambio",
+                        color = Color.Gray,
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(ratesList) { item ->
+                        val base = item.base ?: "USD"
+                        val quote = item.quote ?: ""
+                        val rate = item.rate ?: 0.0
+                        val date = item.date ?: ""
+                        val id = "$base-$quote".hashCode()
+                        val esFavorito = id in favoritosIds
+
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = surfaceColor)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(20.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = "$base ➔ $quote",
+                                        color = primaryColor,
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "1 $base = $rate $quote",
+                                        color = textColor,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                    if (date.isNotBlank()) {
+                                        Text(
+                                            text = "Fecha: $date",
+                                            color = Color.Gray,
+                                            fontSize = 13.sp,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
+                                }
+
+                                IconButton(onClick = { onToggleFavorite(item) }) {
+                                    Icon(
+                                        imageVector = if (esFavorito) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                        contentDescription = if (esFavorito) "Quitar de favoritos" else "Agregar a favoritos",
+                                        tint = if (esFavorito) Color(0xFFE91E63) else Color.Gray,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        // Botón RANDOM
         Button(
-            onClick = onFetchQuote,
+            onClick = onFetchRates,
             colors = ButtonDefaults.buttonColors(
                 containerColor = primaryColor,
                 contentColor = Color.White
@@ -193,7 +264,7 @@ fun QuoteScreenContent(
                 .shadow(8.dp, RoundedCornerShape(12.dp))
         ) {
             Text(
-                text = "RANDOM",
+                text = "ACTUALIZAR",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 2.sp
@@ -203,9 +274,9 @@ fun QuoteScreenContent(
 }
 
 @Composable
-fun FavoritesContent(
-    favoritosList: List<KanyeQuoteResumen>,
-    onQuitar: (String) -> Unit,
+fun ExchangeFavoritesContent(
+    favoritosList: List<ExchangeRateResumen>,
+    onQuitar: (ExchangeRateResumen) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -215,7 +286,7 @@ fun FavoritesContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Mis Favoritos",
+            text = "Tipos de Cambio Favoritos",
             color = textColor,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
@@ -223,15 +294,14 @@ fun FavoritesContent(
         )
 
         if (favoritosList.isEmpty()) {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .weight(1f),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Aún no tienes favoritos.\nToca el ícono de corazón para guardar",
+                    text = "Aún no tienes tipos de cambio guardados como favoritos.\nToca el ícono de corazón para guardar uno.",
                     color = Color.Gray,
                     textAlign = TextAlign.Center,
                     fontSize = 16.sp
@@ -244,37 +314,52 @@ fun FavoritesContent(
                     .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(favoritosList.size) { index ->
-                    val favorito = favoritosList[index]
+                items(favoritosList) { favorito ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = surfaceColor)
                     ) {
-                        Column(
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp)
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "\"${favorito.quote}\"",
-                                color = textColor,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp),
-                                contentAlignment = Alignment.CenterEnd
+                            Column(
+                                modifier = Modifier.weight(1f)
                             ) {
-                                IconButton(onClick = { onQuitar(favorito.quote) }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Favorite,
-                                        contentDescription = "Quitar de favoritos",
-                                        tint = Color(0xFFE91E63)
+                                Text(
+                                    text = "${favorito.base} ➔ ${favorito.quote}",
+                                    color = primaryColor,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "1 ${favorito.base} = ${favorito.rate} ${favorito.quote}",
+                                    color = textColor,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                                if (favorito.date.isNotBlank()) {
+                                    Text(
+                                        text = "Fecha: ${favorito.date}",
+                                        color = Color.Gray,
+                                        fontSize = 12.sp,
+                                        modifier = Modifier.padding(top = 2.dp)
                                     )
                                 }
+                            }
+
+                            IconButton(onClick = { onQuitar(favorito) }) {
+                                Icon(
+                                    imageVector = Icons.Default.Favorite,
+                                    contentDescription = "Quitar de favoritos",
+                                    tint = Color(0xFFE91E63),
+                                    modifier = Modifier.size(28.dp)
+                                )
                             }
                         }
                     }

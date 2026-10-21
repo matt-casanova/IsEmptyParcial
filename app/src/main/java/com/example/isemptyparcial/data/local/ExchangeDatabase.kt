@@ -5,20 +5,20 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [FavoritoEntity::class], version = 1, exportSchema = false)
-abstract class KanyeWestDatabase : RoomDatabase() {
+@Database(entities = [FavoritoEntity::class], version = 2, exportSchema = false)
+abstract class ExchangeDatabase : RoomDatabase() {
     abstract fun favoritoDao(): FavoritoDao
 
     companion object {
         @Volatile
-        private var instancia: KanyeWestDatabase? = null
+        private var instancia: ExchangeDatabase? = null
 
-        fun obtener(context: Context): KanyeWestDatabase =
+        fun obtener(context: Context): ExchangeDatabase =
             instancia ?: synchronized(this) {
                 instancia ?: Room.databaseBuilder(
                     context.applicationContext,
-                    KanyeWestDatabase::class.java,
-                    "kanyex.db"
+                    ExchangeDatabase::class.java,
+                    "exchange.db"
                 )
                 .fallbackToDestructiveMigration()
                 .build()
