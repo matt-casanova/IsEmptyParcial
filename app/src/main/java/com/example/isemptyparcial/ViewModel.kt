@@ -3,11 +3,13 @@ package com.example.isemptyparcial
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.isemptyparcial.data.aProductUi
 import com.example.isemptyparcial.data.exchange.ExchangeRateDto
 import com.example.isemptyparcial.data.exchange.ExchangeRateRepository
 import com.example.isemptyparcial.data.local.ExchangeDatabase
 import com.example.isemptyparcial.data.local.FavoritosRepository
-import com.example.isemptyparcial.models.ExchangeRateResumen
+import com.example.isemptyparcial.data.product.ProductRepository
+import com.example.isemptyparcial.models.ProductUi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +20,7 @@ import kotlinx.coroutines.launch
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val exchangeRepository = ExchangeRateRepository()
+    private val productRepository = ProductRepository()
     private val favoritosRepository = FavoritosRepository(ExchangeDatabase.obtener(application).favoritoDao())
 
     val favoritosIds: StateFlow<Set<Int>> = favoritosRepository.observarIds()
@@ -27,7 +30,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             initialValue = emptySet()
         )
 
-    val favoritosList: StateFlow<List<ExchangeRateResumen>> = favoritosRepository.observarFavoritos()
+    val favoritosList: StateFlow<List<ProductUi>> = favoritosRepository.observarFavoritos()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -37,6 +40,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _ratesState = MutableStateFlow<List<ExchangeRateDto>>(emptyList())
     val ratesState: StateFlow<List<ExchangeRateDto>> = _ratesState.asStateFlow()
 
+    private val _productsState = MutableStateFlow<List<ProductUi>>(emptyList())
+    val productsState: StateFlow<List<ProductUi>> = _productsState.asStateFlow()
+
     private val _errorState = MutableStateFlow<String?>(null)
     val errorState: StateFlow<String?> = _errorState.asStateFlow()
 
@@ -44,10 +50,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
-        fetchExchangeRates()
+        cargarDatos()
     }
 
-    fun fetchExchangeRates() {
+    fun cargarDatos() {
         viewModelScope.launch {
             _isLoading.value = true
             _errorState.value = null
@@ -55,6 +61,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val rates = exchangeRepository.obtenerTiposDeCambio()
                 _ratesState.value = rates
+
+                val rateBob = rates.find { it.quote == "BOB" }?.rate
+                val rateEur = rates.find { it.quote == "EUR" }?.rate
+
+                val rawProducts = productRepository.obtenerProductos()
+                val mappedProducts = rawProducts.map { it.aProductUi(rateBob, rateEur) }
+                _productsState.value = mappedProducts
+
             } catch (e: Exception) {
                 _errorState.value = "Hubo un error: ${e.localizedMessage}"
             } finally {
@@ -63,33 +77,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun alternarFavorito(rateDto: ExchangeRateDto) {
-        val base = rateDto.base ?: "USD"
-        val quote = rateDto.quote ?: ""
-        val rate = rateDto.rate ?: 0.0
-        val date = rateDto.date ?: ""
-
-        val id = "$base-$quote".hashCode()
-        val esFavorito = id in favoritosIds.value
-
+    fun alternarFavoritoProducto(product: ProductUi) {
+        val esFavorito = product.id in favoritosIds.value
         viewModelScope.launch {
             if (esFavorito) {
-                favoritosRepository.quitar(id)
+                favoritosRepository.quitar(product.id)
             } else {
-                favoritosRepository.agregar(
-                    ExchangeRateResumen(
-                        base = base,
-                        quote = quote,
-                        rate = rate,
-                        date = date
-                    )
-                )
+                favoritosRepository.agregar(product)
             }
         }
     }
 
-    fun quitarFavorito(resumen: ExchangeRateResumen) {
-        val id = "${resumen.base}-${resumen.quote}".hashCode()
+    fun quitarFavoritoProducto(id: Int) {
         viewModelScope.launch {
             favoritosRepository.quitar(id)
         }

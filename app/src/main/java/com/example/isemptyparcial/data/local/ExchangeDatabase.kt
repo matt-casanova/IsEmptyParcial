@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [FavoritoEntity::class], version = 2, exportSchema = false)
+@Database(entities = [FavoritoEntity::class], version = 3, exportSchema = false)
 abstract class ExchangeDatabase : RoomDatabase() {
     abstract fun favoritoDao(): FavoritoDao
 
@@ -18,7 +18,7 @@ abstract class ExchangeDatabase : RoomDatabase() {
                 instancia ?: Room.databaseBuilder(
                     context.applicationContext,
                     ExchangeDatabase::class.java,
-                    "exchange.db"
+                    "products_exchange.db"
                 )
                 .fallbackToDestructiveMigration()
                 .build()
