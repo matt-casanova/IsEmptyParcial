@@ -65,7 +65,7 @@ fun ProductFavoritesScreen(
             ) {
                 Text(
                     text = "Aún no tienes productos guardados en DB 1.\nToca el corazón en la pestaña 'Productos'.",
-                    color = Color.Gray,
+                    color = mutedTextColor,
                     textAlign = TextAlign.Center,
                     fontSize = 16.sp
                 )
@@ -96,7 +96,7 @@ fun ProductFavoritesScreen(
                                 modifier = Modifier
                                     .size(90.dp)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Color.DarkGray)
+                                    .background(Color(0xFFEFE8DC))
                             )
 
                             Spacer(modifier = Modifier.width(14.dp))
@@ -111,7 +111,7 @@ fun ProductFavoritesScreen(
                                 ) {
                                     Box(
                                         modifier = Modifier
-                                            .background(primaryColor.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                                            .background(primaryColor.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
                                             .padding(horizontal = 8.dp, vertical = 2.dp)
                                     ) {
                                         Text(
@@ -129,7 +129,7 @@ fun ProductFavoritesScreen(
                                         Icon(
                                             imageVector = Icons.Default.Favorite,
                                             contentDescription = "Quitar de favoritos",
-                                            tint = Color(0xFFE91E63),
+                                            tint = primaryColor,
                                             modifier = Modifier.size(24.dp)
                                         )
                                     }
@@ -147,7 +147,7 @@ fun ProductFavoritesScreen(
 
                                 Text(
                                     text = producto.description,
-                                    color = Color.Gray,
+                                    color = mutedTextColor,
                                     fontSize = 12.sp,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
@@ -180,7 +180,7 @@ fun ProductFavoritesScreen(
                                     if (producto.priceEur != null) {
                                         Text(
                                             text = "€${String.format(Locale.US, "%.2f", producto.priceEur)}",
-                                            color = Color(0xFF29B6F6),
+                                            color = euroColor,
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.Bold
                                         )

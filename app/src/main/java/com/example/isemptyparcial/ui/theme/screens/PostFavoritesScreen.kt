@@ -65,8 +65,8 @@ fun PostFavoritesScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Aún no tienes productos+posts guardados en DB 2.\nToca el marcador verde en la pestaña 'Posts'.",
-                    color = Color.Gray,
+                    text = "Aún no tienes productos+posts guardados en DB 2.\nToca el marcador en la pestaña 'Posts'.",
+                    color = mutedTextColor,
                     textAlign = TextAlign.Center,
                     fontSize = 16.sp
                 )
@@ -100,7 +100,7 @@ fun PostFavoritesScreen(
                                     modifier = Modifier
                                         .size(80.dp)
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(Color.DarkGray)
+                                        .background(Color(0xFFEFE8DC))
                                 )
 
                                 Spacer(modifier = Modifier.width(14.dp))
@@ -115,7 +115,7 @@ fun PostFavoritesScreen(
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .background(primaryColor.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                                                .background(primaryColor.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
                                                 .padding(horizontal = 8.dp, vertical = 2.dp)
                                         ) {
                                             Text(
@@ -133,7 +133,7 @@ fun PostFavoritesScreen(
                                             Icon(
                                                 imageVector = Icons.Default.Bookmark,
                                                 contentDescription = "Quitar de DB 2",
-                                                tint = Color(0xFF00E676),
+                                                tint = accentColor,
                                                 modifier = Modifier.size(24.dp)
                                             )
                                         }

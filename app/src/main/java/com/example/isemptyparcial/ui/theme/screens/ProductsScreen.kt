@@ -81,7 +81,7 @@ fun ProductsScreen(
                 ) {
                     Text(
                         text = error,
-                        color = Color.Red,
+                        color = Color(0xFFC62828),
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center
                     )
@@ -99,7 +99,7 @@ fun ProductsScreen(
                         onClick = onRefresh,
                         colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                     ) {
-                        Text("Cargar Productos")
+                        Text("Cargar Productos", color = Color.White)
                     }
                 }
             }
@@ -149,7 +149,7 @@ fun ProductExchangeCardItem(
                 modifier = Modifier
                     .size(90.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.DarkGray)
+                    .background(Color(0xFFEFE8DC))
             )
 
             Spacer(modifier = Modifier.width(14.dp))
@@ -164,7 +164,7 @@ fun ProductExchangeCardItem(
                 ) {
                     Box(
                         modifier = Modifier
-                            .background(primaryColor.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                            .background(primaryColor.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
                             .padding(horizontal = 8.dp, vertical = 2.dp)
                     ) {
                         Text(
@@ -182,7 +182,7 @@ fun ProductExchangeCardItem(
                         Icon(
                             imageVector = if (esFavorito) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (esFavorito) "Quitar de DB 1" else "Guardar en DB 1",
-                            tint = if (esFavorito) Color(0xFFE91E63) else Color.Gray,
+                            tint = if (esFavorito) primaryColor else Color(0xFFB0A4A0),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -200,7 +200,7 @@ fun ProductExchangeCardItem(
 
                 Text(
                     text = product.description,
-                    color = Color.Gray,
+                    color = mutedTextColor,
                     fontSize = 12.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -233,7 +233,7 @@ fun ProductExchangeCardItem(
                     if (product.priceEur != null) {
                         Text(
                             text = "€${String.format(Locale.US, "%.2f", product.priceEur)}",
-                            color = Color(0xFF29B6F6),
+                            color = euroColor,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold
                         )

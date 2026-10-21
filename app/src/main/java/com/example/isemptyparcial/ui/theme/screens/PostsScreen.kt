@@ -82,7 +82,7 @@ fun PostsScreen(
                 ) {
                     Text(
                         text = error,
-                        color = Color.Red,
+                        color = Color(0xFFC62828),
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center
                     )
@@ -100,7 +100,7 @@ fun PostsScreen(
                         onClick = onRefresh,
                         colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
                     ) {
-                        Text("Cargar Datos")
+                        Text("Cargar Datos", color = Color.White)
                     }
                 }
             }
@@ -153,7 +153,7 @@ fun ProductPostCardItem(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color.DarkGray)
+                        .background(Color(0xFFEFE8DC))
                 )
 
                 Spacer(modifier = Modifier.width(14.dp))
@@ -168,7 +168,7 @@ fun ProductPostCardItem(
                     ) {
                         Box(
                             modifier = Modifier
-                                .background(primaryColor.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                                .background(primaryColor.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
                                 .padding(horizontal = 8.dp, vertical = 2.dp)
                         ) {
                             Text(
@@ -186,7 +186,7 @@ fun ProductPostCardItem(
                             Icon(
                                 imageVector = if (esFavorito) Icons.Default.Bookmark else Icons.Default.FavoriteBorder,
                                 contentDescription = if (esFavorito) "Quitar de DB 2" else "Guardar en DB 2",
-                                tint = if (esFavorito) Color(0xFF00E676) else Color.Gray,
+                                tint = if (esFavorito) accentColor else Color(0xFFB0A4A0),
                                 modifier = Modifier.size(24.dp)
                             )
                         }

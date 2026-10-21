@@ -67,7 +67,7 @@ fun ExchangeScreen(
                 ) {
                     Text(
                         text = error,
-                        color = Color.Red,
+                        color = Color(0xFFC62828),
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center
                     )
@@ -83,7 +83,7 @@ fun ExchangeScreen(
                 ) {
                     Text(
                         text = "Presiona ACTUALIZAR para obtener los tipos de cambio",
-                        color = Color.Gray,
+                        color = mutedTextColor,
                         fontSize = 16.sp,
                         textAlign = TextAlign.Center
                     )
@@ -129,7 +129,7 @@ fun ExchangeScreen(
                                 if (date.isNotBlank()) {
                                     Text(
                                         text = "Fecha: $date",
-                                        color = Color.Gray,
+                                        color = mutedTextColor,
                                         fontSize = 13.sp,
                                         modifier = Modifier.padding(top = 4.dp)
                                     )
@@ -152,7 +152,7 @@ fun ExchangeScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .shadow(8.dp, RoundedCornerShape(12.dp))
+                .shadow(4.dp, RoundedCornerShape(12.dp))
         ) {
             Text(
                 text = "ACTUALIZAR",

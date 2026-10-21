@@ -36,12 +36,15 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.isemptyparcial.MainViewModel
 
-val backgroundColor = Color(0xFF121212)
-val surfaceColor = Color(0xFF1E1E1E)
-val textColor = Color(0xFFF5F5F5)
-val primaryColor = Color(0xFFE91E63)
-val accentColor = Color(0xFF00E676)
-val cardSecondaryColor = Color(0xFF2A2A2A)
+// Estética Soft & Warm: Crema, Naranja Suave y Verde Suave
+val backgroundColor = Color(0xFFFBF8F3)      // Crema Cálido de fondo
+val surfaceColor = Color(0xFFFFFFFF)         // Tarjetas en Blanco Cálido
+val textColor = Color(0xFF2C2523)            // Texto Carbón Cálido
+val mutedTextColor = Color(0xFF7A6F6B)       // Texto Secundario Suave
+val primaryColor = Color(0xFFE07A5F)         // Naranja Terracota Suave
+val accentColor = Color(0xFF6B9080)          // Verde Sabia Suave
+val cardSecondaryColor = Color(0xFFF3EBE0)   // Arena/Crema para cajas de posts
+val euroColor = Color(0xFF5B85AA)            // Azul/Verde Polvo Suave
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,7 +82,7 @@ fun MainScreen(
                 title = {
                     Text(
                         text = titleText,
-                        fontWeight = FontWeight.Black,
+                        fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = primaryColor,
                         modifier = Modifier.fillMaxWidth(),
@@ -98,7 +101,7 @@ fun MainScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = surfaceColor
                 ),
-                modifier = Modifier.shadow(8.dp)
+                modifier = Modifier.shadow(4.dp)
             )
         },
         bottomBar = {
@@ -112,11 +115,11 @@ fun MainScreen(
                     icon = { Icon(Icons.Default.ShoppingBag, contentDescription = "Productos") },
                     label = { Text("Productos", fontSize = 10.sp) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.White,
+                        selectedIconColor = primaryColor,
                         selectedTextColor = primaryColor,
-                        indicatorColor = primaryColor,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
+                        indicatorColor = primaryColor.copy(alpha = 0.15f),
+                        unselectedIconColor = Color(0xFF9E928E),
+                        unselectedTextColor = Color(0xFF9E928E)
                     )
                 )
                 NavigationBarItem(
@@ -125,11 +128,11 @@ fun MainScreen(
                     icon = { Icon(Icons.AutoMirrored.Filled.Article, contentDescription = "Posts") },
                     label = { Text("Posts", fontSize = 10.sp) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.White,
+                        selectedIconColor = primaryColor,
                         selectedTextColor = primaryColor,
-                        indicatorColor = primaryColor,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
+                        indicatorColor = primaryColor.copy(alpha = 0.15f),
+                        unselectedIconColor = Color(0xFF9E928E),
+                        unselectedTextColor = Color(0xFF9E928E)
                     )
                 )
                 NavigationBarItem(
@@ -138,11 +141,11 @@ fun MainScreen(
                     icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Cambio") },
                     label = { Text("Cambio", fontSize = 10.sp) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.White,
+                        selectedIconColor = primaryColor,
                         selectedTextColor = primaryColor,
-                        indicatorColor = primaryColor,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
+                        indicatorColor = primaryColor.copy(alpha = 0.15f),
+                        unselectedIconColor = Color(0xFF9E928E),
+                        unselectedTextColor = Color(0xFF9E928E)
                     )
                 )
                 NavigationBarItem(
@@ -151,11 +154,11 @@ fun MainScreen(
                     icon = { Icon(Icons.Default.Favorite, contentDescription = "Fav Productos") },
                     label = { Text("Fav Prod", fontSize = 10.sp) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.White,
+                        selectedIconColor = primaryColor,
                         selectedTextColor = primaryColor,
-                        indicatorColor = primaryColor,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
+                        indicatorColor = primaryColor.copy(alpha = 0.15f),
+                        unselectedIconColor = Color(0xFF9E928E),
+                        unselectedTextColor = Color(0xFF9E928E)
                     )
                 )
                 NavigationBarItem(
@@ -164,11 +167,11 @@ fun MainScreen(
                     icon = { Icon(Icons.Default.Bookmark, contentDescription = "Fav Posts") },
                     label = { Text("Fav Posts", fontSize = 10.sp) },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.White,
-                        selectedTextColor = primaryColor,
-                        indicatorColor = primaryColor,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
+                        selectedIconColor = accentColor,
+                        selectedTextColor = accentColor,
+                        indicatorColor = accentColor.copy(alpha = 0.15f),
+                        unselectedIconColor = Color(0xFF9E928E),
+                        unselectedTextColor = Color(0xFF9E928E)
                     )
                 )
             }
