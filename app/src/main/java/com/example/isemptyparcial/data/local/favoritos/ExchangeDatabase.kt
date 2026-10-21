@@ -1,24 +1,24 @@
-package com.example.isemptyparcial.data.local
+package com.example.isemptyparcial.data.local.favoritos
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [FavoritoPostEntity::class], version = 1, exportSchema = false)
-abstract class PostDatabase : RoomDatabase() {
-    abstract fun favoritoPostDao(): FavoritoPostDao
+@Database(entities = [FavoritoEntity::class], version = 3, exportSchema = false)
+abstract class ExchangeDatabase : RoomDatabase() {
+    abstract fun favoritoDao(): FavoritoDao
 
     companion object {
         @Volatile
-        private var instancia: PostDatabase? = null
+        private var instancia: ExchangeDatabase? = null
 
-        fun obtener(context: Context): PostDatabase =
+        fun obtener(context: Context): ExchangeDatabase =
             instancia ?: synchronized(this) {
                 instancia ?: Room.databaseBuilder(
                     context.applicationContext,
-                    PostDatabase::class.java,
-                    "posts_products.db"
+                    ExchangeDatabase::class.java,
+                    "products_exchange.db"
                 )
                 .fallbackToDestructiveMigration()
                 .build()

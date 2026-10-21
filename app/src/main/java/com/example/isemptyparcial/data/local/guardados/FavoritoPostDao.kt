@@ -1,4 +1,4 @@
-package com.example.isemptyparcial.data.local
+package com.example.isemptyparcial.data.local.guardados
 
 import androidx.room.Dao
 import androidx.room.Insert

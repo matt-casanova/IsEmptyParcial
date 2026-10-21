@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.example.isemptyparcial.ui.theme.IsEmptyParcialTheme
-import com.example.isemptyparcial.ui.theme.MainScreen
+import com.example.isemptyparcial.ui.theme.screens.MainScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

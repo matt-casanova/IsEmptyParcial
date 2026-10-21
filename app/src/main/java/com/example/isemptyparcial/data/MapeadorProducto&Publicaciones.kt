@@ -1,6 +1,6 @@
 package com.example.isemptyparcial.data
 
-import com.example.isemptyparcial.data.local.FavoritoPostEntity
+import com.example.isemptyparcial.data.local.guardados.FavoritoPostEntity
 import com.example.isemptyparcial.data.post.PostDto
 import com.example.isemptyparcial.data.product.ProductDto
 import com.example.isemptyparcial.models.ProductoConPublicacionUi

@@ -1,4 +1,4 @@
-package com.example.isemptyparcial.data.local
+package com.example.isemptyparcial.data.local.favoritos
 
 import com.example.isemptyparcial.data.aEntidad
 import com.example.isemptyparcial.data.aProductUi

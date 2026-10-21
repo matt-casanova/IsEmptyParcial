@@ -7,10 +7,10 @@ import com.example.isemptyparcial.data.aProductUi
 import com.example.isemptyparcial.data.combinarProductoYPublicacion
 import com.example.isemptyparcial.data.exchange.ExchangeRateDto
 import com.example.isemptyparcial.data.exchange.ExchangeRateRepository
-import com.example.isemptyparcial.data.local.ExchangeDatabase
-import com.example.isemptyparcial.data.local.FavoritosPostRepository
-import com.example.isemptyparcial.data.local.FavoritosRepository
-import com.example.isemptyparcial.data.local.PostDatabase
+import com.example.isemptyparcial.data.local.favoritos.ExchangeDatabase
+import com.example.isemptyparcial.data.local.guardados.FavoritosPostRepository
+import com.example.isemptyparcial.data.local.favoritos.FavoritosRepository
+import com.example.isemptyparcial.data.local.guardados.PostDatabase
 import com.example.isemptyparcial.data.post.PostDto
 import com.example.isemptyparcial.data.post.PostRepository
 import com.example.isemptyparcial.data.product.ProductRepository

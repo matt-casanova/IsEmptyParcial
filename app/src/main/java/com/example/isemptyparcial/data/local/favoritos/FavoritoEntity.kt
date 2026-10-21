@@ -1,4 +1,4 @@
-package com.example.isemptyparcial.data.local
+package com.example.isemptyparcial.data.local.favoritos
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
