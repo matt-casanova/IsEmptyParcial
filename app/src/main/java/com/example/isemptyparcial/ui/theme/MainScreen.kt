@@ -16,7 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Refresh
@@ -57,6 +59,7 @@ import coil.compose.AsyncImage
 import com.example.isemptyparcial.MainViewModel
 import com.example.isemptyparcial.data.exchange.ExchangeRateDto
 import com.example.isemptyparcial.models.ProductUi
+import com.example.isemptyparcial.models.ProductoConPublicacionUi
 import java.util.Locale
 
 val backgroundColor = Color(0xFF121212)
@@ -64,25 +67,34 @@ val surfaceColor = Color(0xFF1E1E1E)
 val textColor = Color(0xFFF5F5F5)
 val primaryColor = Color(0xFFE91E63)
 val accentColor = Color(0xFF00E676)
+val cardSecondaryColor = Color(0xFF2A2A2A)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     viewModel: MainViewModel = viewModel()
 ) {
+    // 0 = Productos (Maper 1), 1 = Posts (Maper 2), 2 = Cambio, 3 = Fav. Productos (DB 1), 4 = Fav. Posts (DB 2)
     var selectedTab by remember { mutableStateOf(0) }
 
     val favoritosIds by viewModel.favoritosIds.collectAsState()
     val favoritosList by viewModel.favoritosList.collectAsState()
+
+    val favoritosPostIds by viewModel.favoritosPostIds.collectAsState()
+    val favoritosPostList by viewModel.favoritosPostList.collectAsState()
+
     val ratesList by viewModel.ratesState.collectAsState()
     val productsList by viewModel.productsState.collectAsState()
+    val combinedPostsList by viewModel.combinedPostsState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.errorState.collectAsState()
 
     val titleText = when (selectedTab) {
-        0 -> "Catálogo de Productos"
-        1 -> "Tipo de Cambio"
-        else -> "Productos Favoritos"
+        0 -> "Productos (DB 1: Tipo Cambio)"
+        1 -> "Posts (DB 2: Producto + Post)"
+        2 -> "Tipo de Cambio"
+        3 -> "Fav. Productos (DB 1)"
+        else -> "Fav. Posts (DB 2)"
     }
 
     Scaffold(
@@ -94,7 +106,7 @@ fun MainScreen(
                     Text(
                         text = titleText,
                         fontWeight = FontWeight.Black,
-                        fontSize = 22.sp,
+                        fontSize = 18.sp,
                         color = primaryColor,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
@@ -124,7 +136,7 @@ fun MainScreen(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
                     icon = { Icon(Icons.Default.ShoppingBag, contentDescription = "Productos") },
-                    label = { Text("Productos") },
+                    label = { Text("Productos", fontSize = 10.sp) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.White,
                         selectedTextColor = primaryColor,
@@ -136,8 +148,8 @@ fun MainScreen(
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Cambio") },
-                    label = { Text("Cambio") },
+                    icon = { Icon(Icons.AutoMirrored.Filled.Article, contentDescription = "Posts") },
+                    label = { Text("Posts", fontSize = 10.sp) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.White,
                         selectedTextColor = primaryColor,
@@ -149,8 +161,34 @@ fun MainScreen(
                 NavigationBarItem(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    icon = { Icon(Icons.Default.Favorite, contentDescription = "Favoritos") },
-                    label = { Text("Favoritos") },
+                    icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Cambio") },
+                    label = { Text("Cambio", fontSize = 10.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color.White,
+                        selectedTextColor = primaryColor,
+                        indicatorColor = primaryColor,
+                        unselectedIconColor = Color.Gray,
+                        unselectedTextColor = Color.Gray
+                    )
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
+                    icon = { Icon(Icons.Default.Favorite, contentDescription = "Fav Productos") },
+                    label = { Text("Fav Prod", fontSize = 10.sp) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color.White,
+                        selectedTextColor = primaryColor,
+                        indicatorColor = primaryColor,
+                        unselectedIconColor = Color.Gray,
+                        unselectedTextColor = Color.Gray
+                    )
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 4,
+                    onClick = { selectedTab = 4 },
+                    icon = { Icon(Icons.Default.Bookmark, contentDescription = "Fav Posts") },
+                    label = { Text("Fav Posts", fontSize = 10.sp) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.White,
                         selectedTextColor = primaryColor,
@@ -163,7 +201,7 @@ fun MainScreen(
         }
     ) { innerPadding ->
         when (selectedTab) {
-            0 -> ProductsContent(
+            0 -> ProductsWithExchangeContent(
                 productsList = productsList,
                 favoritosIds = favoritosIds,
                 isLoading = isLoading,
@@ -173,7 +211,17 @@ fun MainScreen(
                 modifier = Modifier.padding(innerPadding)
             )
 
-            1 -> ExchangeScreenContent(
+            1 -> ProductsWithPostsContent(
+                combinedPostsList = combinedPostsList,
+                favoritosPostIds = favoritosPostIds,
+                isLoading = isLoading,
+                error = error,
+                onToggleFavorite = { item -> viewModel.alternarFavoritoProductoPost(item) },
+                onRefresh = { viewModel.cargarDatos() },
+                modifier = Modifier.padding(innerPadding)
+            )
+
+            2 -> ExchangeScreenContent(
                 ratesList = ratesList,
                 isLoading = isLoading,
                 error = error,
@@ -181,17 +229,26 @@ fun MainScreen(
                 modifier = Modifier.padding(innerPadding)
             )
 
-            2 -> ProductFavoritesContent(
+            3 -> ProductFavoritesContent(
                 favoritosList = favoritosList,
                 onQuitar = { id -> viewModel.quitarFavoritoProducto(id) },
+                modifier = Modifier.padding(innerPadding)
+            )
+
+            4 -> PostFavoritesContent(
+                favoritosPostList = favoritosPostList,
+                onQuitar = { id -> viewModel.quitarFavoritoProductoPost(id) },
                 modifier = Modifier.padding(innerPadding)
             )
         }
     }
 }
 
+/**
+ * PANTALLA 1: PRODUCTOS CON TIPO DE CAMBIO (MAPER 1, GUARDA EN DB 1)
+ */
 @Composable
-fun ProductsContent(
+fun ProductsWithExchangeContent(
     productsList: List<ProductUi>,
     favoritosIds: Set<Int>,
     isLoading: Boolean,
@@ -264,7 +321,7 @@ fun ProductsContent(
                 ) {
                     items(productsList) { product ->
                         val esFavorito = product.id in favoritosIds
-                        ProductCardItem(
+                        ProductExchangeCardItem(
                             product = product,
                             esFavorito = esFavorito,
                             onToggleFavorite = { onToggleFavorite(product) }
@@ -277,7 +334,7 @@ fun ProductsContent(
 }
 
 @Composable
-fun ProductCardItem(
+fun ProductExchangeCardItem(
     product: ProductUi,
     esFavorito: Boolean,
     onToggleFavorite: () -> Unit
@@ -332,7 +389,7 @@ fun ProductCardItem(
                     ) {
                         Icon(
                             imageVector = if (esFavorito) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = if (esFavorito) "Quitar de favoritos" else "Agregar a favoritos",
+                            contentDescription = if (esFavorito) "Quitar de DB 1" else "Guardar en DB 1",
                             tint = if (esFavorito) Color(0xFFE91E63) else Color.Gray,
                             modifier = Modifier.size(24.dp)
                         )
@@ -395,6 +452,216 @@ fun ProductCardItem(
     }
 }
 
+/**
+ * PANTALLA 2: POSTS CON PRODUCTOS (MAPER 2, GUARDA EN DB 2)
+ */
+@Composable
+fun ProductsWithPostsContent(
+    combinedPostsList: List<ProductoConPublicacionUi>,
+    favoritosPostIds: Set<Int>,
+    isLoading: Boolean,
+    error: String?,
+    onToggleFavorite: (ProductoConPublicacionUi) -> Unit,
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Cargando productos y publicaciones...",
+                        color = textColor,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            error != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = error,
+                        color = Color.Red,
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            combinedPostsList.isEmpty() -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Button(
+                        onClick = onRefresh,
+                        colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+                    ) {
+                        Text("Cargar Datos")
+                    }
+                }
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(combinedPostsList) { item ->
+                        val esFavorito = item.productoId in favoritosPostIds
+                        ProductPostCardItem(
+                            item = item,
+                            esFavorito = esFavorito,
+                            onToggleFavorite = { onToggleFavorite(item) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ProductPostCardItem(
+    item: ProductoConPublicacionUi,
+    esFavorito: Boolean,
+    onToggleFavorite: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = surfaceColor)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = item.imagenUrl,
+                    contentDescription = item.tituloProducto,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.DarkGray)
+                )
+
+                Spacer(modifier = Modifier.width(14.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .background(primaryColor.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = item.categoriaProducto.uppercase(Locale.getDefault()),
+                                color = primaryColor,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        IconButton(
+                            onClick = onToggleFavorite,
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (esFavorito) Icons.Default.Bookmark else Icons.Default.FavoriteBorder,
+                                contentDescription = if (esFavorito) "Quitar de DB 2" else "Guardar en DB 2",
+                                tint = if (esFavorito) Color(0xFF00E676) else Color.Gray,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = item.tituloProducto,
+                        color = textColor,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+
+                    Text(
+                        text = "$${String.format(Locale.US, "%.2f", item.precioUsd)} USD",
+                        color = textColor,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+            }
+
+            if (item.tituloPublicacion != null) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(cardSecondaryColor, RoundedCornerShape(12.dp))
+                        .padding(12.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = "📝 Post #${item.publicacionId}: ${item.tituloPublicacion}",
+                            color = primaryColor,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = item.contenidoPublicacion ?: "",
+                            color = textColor.copy(alpha = 0.85f),
+                            fontSize = 12.sp,
+                            maxLines = 3,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * PANTALLA 3: TIPO DE CAMBIO
+ */
 @Composable
 fun ExchangeScreenContent(
     ratesList: List<ExchangeRateDto>,
@@ -533,6 +800,9 @@ fun ExchangeScreenContent(
     }
 }
 
+/**
+ * PANTALLA 4: FAVORITOS BASE DE DATOS 1 (PRODUCTOS + CAMBIO)
+ */
 @Composable
 fun ProductFavoritesContent(
     favoritosList: List<ProductUi>,
@@ -546,9 +816,9 @@ fun ProductFavoritesContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Mis Productos Favoritos",
+            text = "Favoritos DB 1 (Productos + Cambio)",
             color = textColor,
-            fontSize = 22.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
         )
@@ -561,7 +831,7 @@ fun ProductFavoritesContent(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Aún no tienes productos guardados como favoritos.\nToca el ícono de corazón en cualquier producto para guardarlo.",
+                    text = "Aún no tienes productos guardados en DB 1.\nToca el corazón en la pestaña 'Productos'.",
                     color = Color.Gray,
                     textAlign = TextAlign.Center,
                     fontSize = 16.sp
@@ -575,11 +845,278 @@ fun ProductFavoritesContent(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 items(favoritosList) { producto ->
-                    ProductCardItem(
-                        product = producto,
-                        esFavorito = true,
-                        onToggleFavorite = { onQuitar(producto.id) }
-                    )
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = surfaceColor)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AsyncImage(
+                                model = producto.thumbnail,
+                                contentDescription = producto.title,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(90.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color.DarkGray)
+                            )
+
+                            Spacer(modifier = Modifier.width(14.dp))
+
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(primaryColor.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = producto.category.uppercase(Locale.getDefault()),
+                                            color = primaryColor,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+
+                                    IconButton(
+                                        onClick = { onQuitar(producto.id) },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Favorite,
+                                            contentDescription = "Quitar de favoritos",
+                                            tint = Color(0xFFE91E63),
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+
+                                Text(
+                                    text = producto.title,
+                                    color = textColor,
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+
+                                Text(
+                                    text = producto.description,
+                                    color = Color.Gray,
+                                    fontSize = 12.sp,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "$${String.format(Locale.US, "%.2f", producto.priceUsd)} USD",
+                                        color = textColor,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+
+                                    if (producto.priceBob != null) {
+                                        Text(
+                                            text = "Bs ${String.format(Locale.US, "%.2f", producto.priceBob)}",
+                                            color = accentColor,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+
+                                    if (producto.priceEur != null) {
+                                        Text(
+                                            text = "€${String.format(Locale.US, "%.2f", producto.priceEur)}",
+                                            color = Color(0xFF29B6F6),
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * PANTALLA 5: FAVORITOS BASE DE DATOS 2 (PRODUCTOS + POSTS)
+ */
+@Composable
+fun PostFavoritesContent(
+    favoritosPostList: List<ProductoConPublicacionUi>,
+    onQuitar: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Favoritos DB 2 (Productos + Posts)",
+            color = textColor,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        if (favoritosPostList.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Aún no tienes productos+posts guardados en DB 2.\nToca el marcador verde en la pestaña 'Posts'.",
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(favoritosPostList) { item ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = surfaceColor)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
+                                    model = item.imagenUrl,
+                                    contentDescription = item.tituloProducto,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(80.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color.DarkGray)
+                                )
+
+                                Spacer(modifier = Modifier.width(14.dp))
+
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(primaryColor.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(
+                                                text = item.categoriaProducto.uppercase(Locale.getDefault()),
+                                                color = primaryColor,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+
+                                        IconButton(
+                                            onClick = { onQuitar(item.productoId) },
+                                            modifier = Modifier.size(28.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Bookmark,
+                                                contentDescription = "Quitar de DB 2",
+                                                tint = Color(0xFF00E676),
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                        }
+                                    }
+
+                                    Text(
+                                        text = item.tituloProducto,
+                                        color = textColor,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+
+                                    Text(
+                                        text = "$${String.format(Locale.US, "%.2f", item.precioUsd)} USD",
+                                        color = textColor,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.padding(top = 2.dp)
+                                    )
+                                }
+                            }
+
+                            if (item.tituloPublicacion != null) {
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(cardSecondaryColor, RoundedCornerShape(12.dp))
+                                        .padding(12.dp)
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = "📝 Post #${item.publicacionId}: ${item.tituloPublicacion}",
+                                            color = primaryColor,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = item.contenidoPublicacion ?: "",
+                                            color = textColor.copy(alpha = 0.85f),
+                                            fontSize = 12.sp,
+                                            maxLines = 3,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.padding(top = 4.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
